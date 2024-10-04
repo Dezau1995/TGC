@@ -1,0 +1,14 @@
+GET http://localhost:3000/users/users
+
+###
+
+POST http://localhost:3000/users/user
+Content-Type: application/json
+
+{
+    "firstname": "Dezau",
+    "lastname": "Sedillo",
+    "email": "dezau@gmail.com",
+    "password": "toto",
+    "picture": "https://numero.com/culture/musique/rihanna-sortira-t-elle-deux-albums-au-lieu-dun-seul/"
+}

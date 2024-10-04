@@ -1,0 +1,49 @@
+∏GET http://localhost:3000/
+
+###
+GET http://localhost:3000/products/
+
+###
+GET http://localhost:3000/products/search/mo
+
+###
+GET http://localhost:3000/products/tags/1
+
+###
+GET http://localhost:3000/products/product/1
+
+###
+DELETE http://localhost:3000/products/5
+
+###
+POST http://localhost:3000/products/
+Content-Type: application/json
+
+{
+		"title":"Juanito Muchachos",
+		"description":"Lorem ipsum",
+		"owner":"Dezau",
+		"price":15,
+		"createdAt":"maintenant",
+		"picture":"https://imgur.com",
+		"location":"Caen",
+		"categoryId": 1,
+		"tagsId": "[1, 3]"
+}
+
+###
+
+PUT http://localhost:3000/products/4
+Content-Type: application/json
+
+{
+		"title":"SALUT",
+		"description":"Lorem ipsum",
+		"owner":"Dezau",
+		"price":35,
+		"createdAt":"maintenant",
+		"picture":"https://imgur.com",
+		"location":"Caen",
+		"categoryId": 1,
+		"tagsId": "[1, 3]"
+}
