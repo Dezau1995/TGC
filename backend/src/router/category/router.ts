@@ -16,7 +16,7 @@ categoryRouter.get("/", async (req, res) => {
 
 categoryRouter.get("/:categoryId/products", async (req, res) => {
   try {
-    const categoryId = parseInt(req.params.categoryId);
+    const categoryId = req.params.categoryId;
     const products = await Product.find({
       relations: {
         category: true,

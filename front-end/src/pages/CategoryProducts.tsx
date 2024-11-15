@@ -1,33 +1,26 @@
-import axios from "axios";
-import { useEffect, useState } from "react";
+// import axios from "axios";
+// import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { Product } from "../types/Product";
 import AdCard from "../components/AdCard/AdCard";
+import { useQuery } from "@apollo/client";
+import { GET_PRODUCTS_BY_CATEGORY } from "../query/ProductQuery";
 
 function CategoryProducts() {
-  const [products, setProducts] = useState<Product[]>([]);
   const { categoryId } = useParams<{ categoryId: string }>();
 
-  const fetchData = async () => {
-    try {
-      const { data } = await axios.get(
-        `http://localhost:3000/categories/${categoryId}/products`
-      );
-      setProducts(data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des produits:", error);
-    }
-  };
+  const { loading, error, data } = useQuery(GET_PRODUCTS_BY_CATEGORY, {
+    variables: { categoryId },
+  });
 
-  useEffect(() => {
-    fetchData();
-  }, [categoryId]);
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <main className="main-content">
       <h1>Produits dans la catégorie {categoryId}</h1>
       <section className="category-products">
-        {products.map((product) => (
+        {data.getProductsByCategory.map((product: Product) => (
           <AdCard
             key={product.id}
             picture={product.picture}

@@ -1,40 +1,36 @@
-import { FormEvent, useEffect, useState } from "react";
+import { SetStateAction, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Category } from "../../types/Category";
-import axios from "axios";
 import "./header.css";
+import { useQuery } from "@apollo/client";
+import { GET_CATEGORY } from "../../query/CategoryQuery";
 
 type Props = {
-  setInput: Function;
+  setInput: (input: string) => void;
 };
 
 function Header({ setInput }: Props) {
-  const [categories, setCategories] = useState<Category[]>([]);
   const [searchInput, setSearchInput] = useState<string>("");
   const navigate = useNavigate();
 
-  async function fetchCategories() {
-    const { data } = await axios.get<Category[]>(
-      "http://localhost:3000/categories/"
-    );
-    setCategories(data);
-  }
-
-  useEffect(() => {
-    fetchCategories();
-  }, []);
+  const { loading, error, data } = useQuery(GET_CATEGORY);
 
   const handleClickCategories = (categoryId: number) => {
     navigate(`/categories/${categoryId}`);
   };
 
-  const handleSearchInput = (e) => {
-    setSearchInput(e.target.value)
-  }
+  const handleSearchInput = (e: {
+    target: { value: SetStateAction<string> };
+  }) => {
+    setSearchInput(e.target.value);
+  };
 
   const handleBtnClickInput = () => {
-    setInput(searchInput)
-  }
+    setInput(searchInput);
+  };
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <>
@@ -56,7 +52,11 @@ function Header({ setInput }: Props) {
               value={searchInput}
               onChange={handleSearchInput}
             />
-            <button className="button-primary" type="button"  onClick={handleBtnClickInput}>
+            <button
+              className="button-primary"
+              type="button"
+              onClick={handleBtnClickInput}
+            >
               <svg
                 aria-hidden="true"
                 width="16"
@@ -75,7 +75,7 @@ function Header({ setInput }: Props) {
         </section>
         <nav className="categories-navigation">
           <ul className="category-navigation-link">
-            {categories.map((category) => (
+            {data.getCategories.map((category: Category) => (
               <li
                 key={category.id}
                 onClick={() => handleClickCategories(category.id)}

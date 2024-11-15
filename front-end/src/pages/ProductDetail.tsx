@@ -1,44 +1,53 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Product } from "../types/Product";
-import axios from "axios";
-import { toast } from "react-toastify";
 import { Tag, TagsOptions } from "../types/Tag";
 import Select from "react-select";
+import { useMutation, useQuery } from "@apollo/client";
+import { GET_PRODUCT_BY_ID } from "../query/ProductQuery";
+import { GET_TAGS } from "../query/TagQuery";
+import {
+  UPDATE_DETAILS_PRODUCT,
+  DELETE_PRODUCT,
+} from "../mutation/ProductMutation";
 
 function ProductDetail() {
-  const { productsId } = useParams();
-  console.log("productsId:", productsId)
-  const [product, setProduct] = useState<Product>();
+  const { productId } = useParams();
   const [edit, setEdit] = useState<boolean>(false);
   const [btnValue, setBtnValue] = useState<string>("Éditer");
   const [selectedTags, setSelectedTags] = useState<TagsOptions[]>([]);
   const [options, setOptions] = useState<TagsOptions[]>([]);
   const navigate = useNavigate();
 
-  const fetchData = async () => {
-    try {
-      const { data } = await axios.get(
-        `http://localhost:3000/products/${productsId}`
-      );
-      setProduct(data);
-    } catch (error) {
-      console.error("Erreur lors de la récupération des produits:", error);
-    }
-  };
+  const {
+    loading: loadingProductId,
+    error: errorProductId,
+    data: dataProductId,
+  } = useQuery(GET_PRODUCT_BY_ID, {
+    variables: { productId },
+  });
 
-  const fetchOption = async () => {
-    try {
-      const response = await axios.get("http://localhost:3000/tags/");
-      const tagsOptions: TagsOptions[] = response.data.map((tag: Tag) => ({
+  const {
+    loading: loadingTags,
+    error: errorTags,
+    data: dataTags,
+  } = useQuery(GET_TAGS);
+
+  const [
+    updateDetailsProduct,
+    { loading: loadingPatchProduct, error: errorPatchProduct },
+  ] = useMutation(UPDATE_DETAILS_PRODUCT);
+
+  const [deleteProduct] = useMutation(DELETE_PRODUCT);
+
+  useEffect(() => {
+    if (dataTags && dataTags.getTags) {
+      const tagsOptions: TagsOptions[] = dataTags.getTags.map((tag: Tag) => ({
         value: tag.id,
         label: tag.name,
       }));
       setOptions(tagsOptions);
-    } catch (error) {
-      console.error("Error fetching data: ", error);
     }
-  };
+  }, [dataTags]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -47,23 +56,18 @@ function ProductDetail() {
     const formJson = Object.fromEntries(formData.entries());
     formJson.tagsId = JSON.stringify(selectedTags.map((tag) => tag.value));
     try {
-      await axios.put(
-        `http://localhost:3000/products/${productsId}`,
-        formJson
-      );
+      await updateDetailsProduct({
+        variables: {
+          productId,
+          data: formJson,
+        },
+      });
       setEdit(false);
       setBtnValue("Éditer");
-      toast.success("Vos modifications ont bien été prises en compte !");
     } catch (error) {
       console.error("Erreur lors de la modification du produit:", error);
-      toast.error("Erreur lors de la modification du produit");
     }
   };
-
-  useEffect(() => {
-    fetchData();
-    fetchOption();
-  }, [edit]);
 
   const handleBtnValue = () => {
     setEdit((prevEdit) => !prevEdit);
@@ -71,71 +75,93 @@ function ProductDetail() {
   };
 
   const handleDelete = async () => {
-    await axios.delete(`http://localhost:3000/products/${productsId}`)
-    navigate("/")
-  }
+    try {
+      await deleteProduct({
+        variables: {
+          productId,
+        },
+      });
+      navigate("/");
+    } catch (error) {
+      console.error("Erreur lors de la suppression du produit:", error);
+    }
+  };
 
-  if (!product) {
-    return "loading";
-  }
+  if (loadingProductId || loadingTags || loadingPatchProduct)
+    return <p>Loading ...</p>;
+  if (errorProductId || errorTags || errorPatchProduct)
+    return <p>Error ... </p>;
+
   return (
     <section>
-      <p>Product #{productsId}</p>
+      <p>Product #{productId}</p>
       <form onSubmit={handleSubmit}>
         {!edit ? (
-          <img src={product.picture} alt="picture" />
+          <img src={dataProductId.getProductById.picture} alt="picture" />
         ) : (
           <input type="text" name="picture" />
         )}
         {!edit ? (
-          <h1>{product.title}</h1>
+          <h1>{dataProductId.getProductById.title}</h1>
         ) : (
           <label>
             Titre :
-            <input type="text" defaultValue={product.title} name="title" />
+            <input
+              type="text"
+              defaultValue={dataProductId.getProductById.title}
+              name="title"
+            />
           </label>
         )}
         {!edit ? (
-          <p>{product.description}</p>
+          <p>{dataProductId.getProductById.description}</p>
         ) : (
           <label>
             Description :
             <input
               type="text"
-              defaultValue={product.description}
+              defaultValue={dataProductId.getProductById.description}
               name="description"
             />
           </label>
         )}
         {!edit ? (
-          <p>{product.owner}</p>
+          <p>{dataProductId.getProductById.owner}</p>
         ) : (
           <label>
             Propriétaire :
-            <input type="text" defaultValue={product.owner} name="owner" />
+            <input
+              type="text"
+              defaultValue={dataProductId.getProductById.owner}
+              name="owner"
+            />
           </label>
         )}
         {!edit ? (
-          <p>{product.price}</p>
+          <p>{dataProductId.getProductById.price}</p>
         ) : (
           <label>
             Prix :
-            <input type="text" defaultValue={product.price} name="price" />
+            <input
+              type="text"
+              defaultValue={dataProductId.getProductById.price}
+              name="price"
+            />
           </label>
         )}
-        <p>{product.createdAt}</p>
+        <p>{dataProductId.getProductById.createdAt}</p>
         <label>
           {!edit ? (
             <section>
-              {product.tag.map((tag) => (
-                <p className="tags" key={tag.id}>
-                  {tag.name}
+              {dataProductId.getProductById.tag.map((option: Tag) => (
+                <p className="tags" key={option.id}>
+                  {option.name}
                 </p>
               ))}
             </section>
           ) : (
             <Select
-              name="tags"
+              name="tagsId"
               closeMenuOnSelect={false}
               isMulti
               options={options}
@@ -152,7 +178,7 @@ function ProductDetail() {
           {btnValue}
         </button>
       )}
-       <button onClick={handleDelete}>Supprimer le produit</button>
+      <button onClick={handleDelete}>Supprimer le produit</button>
     </section>
   );
 }

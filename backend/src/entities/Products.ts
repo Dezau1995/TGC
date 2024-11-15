@@ -1,52 +1,71 @@
-import { 
-    BaseEntity, 
-    Column, Entity, 
-    JoinTable, 
-    ManyToMany, 
-    ManyToOne, 
-    PrimaryGeneratedColumn 
-  } from "typeorm";
-  import { Length } from "class-validator";
+import {
+  BaseEntity,
+  BeforeInsert,
+  Column,
+  Entity,
+  JoinTable,
+  ManyToMany,
+  ManyToOne,
+  PrimaryGeneratedColumn,
+} from "typeorm";
+import { Length } from "class-validator";
 import { Category } from "./Category";
 import { Tags } from "./Tags";
 import { User } from "./Users";
+import { Field, ObjectType } from "type-graphql";
 
-  @Entity()
-  export class Product extends BaseEntity {
-    @PrimaryGeneratedColumn()
-    id!: number;
-  
-    @Column({ length: 100 })
-    @Length(1, 100, {
-      message: "Entre 10 et 100 caractères"
-    })
-    title!: string;
-  
-    @Column()
-    description?: string;
-  
-    @Column()
-    owner!: string;
-  
-    @Column()
-    price!: number;
+@Entity()
+@ObjectType()
+export class Product extends BaseEntity {
+  @Field()
+  @PrimaryGeneratedColumn()
+  id!: string;
 
-    @Column()
-    picture!: string;
-  
-    @Column()
-    location!: string;
+  @Field()
+  @Column({ length: 100 })
+  @Length(1, 100, {
+    message: "Entre 10 et 100 caractères",
+  })
+  title!: string;
 
-    @Column()
-    createdAt!: Date;
+  @Field()
+  @Column()
+  description?: string;
 
-    @ManyToOne(() => Category, category => category.products)
-    category!: Category;
+  @Field()
+  @Column()
+  owner!: string;
 
-    @ManyToMany(() => Tags)
-    @JoinTable()
-    tag!: Tags[]; 
+  @Field()
+  @Column()
+  price!: number;
 
-    @ManyToMany(() => User, (user) => user.product)
-    users!: User[];
+  @Field()
+  @Column()
+  picture!: string;
+
+  @Field()
+  @Column()
+  location!: string;
+
+  @Field()
+  @Column()
+  createdAt!: Date;
+
+  @BeforeInsert()
+  updateDates() {
+    this.createdAt = new Date();
   }
+
+  @Field(() => Category, { nullable: true })
+  @ManyToOne(() => Category, (category) => category.products)
+  category!: Category;
+
+  @Field(() => [Tags])
+  @ManyToMany(() => Tags)
+  @JoinTable()
+  tag!: Tags[];
+
+  @ManyToMany(() => User, (user) => user.product)
+  users!: User[];
+}

@@ -1,32 +1,27 @@
-import AdCard, { ProductsProps } from "../AdCard/AdCard";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useQuery } from "@apollo/client";
+import AdCard from "../AdCard/AdCard";
 import { useOutletContext } from "react-router-dom";
-import "./recentsProducts.css"
+import "./recentsProducts.css";
+import { Product } from "../../types/Product";
+import { GET_PRODUCTS } from "../../query/ProductQuery";
 
 function RecentAds() {
-  const [products, setProducts] = useState<ProductsProps[]>([]);
   const input = useOutletContext();
+  console.log(input);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      const { data } = await axios.get<ProductsProps[]>(
-        input
-          ? `http://localhost:3000/products/search/${input}`
-          : `http://localhost:3000/products/`
-      );
-      console.log(data);
-      setProducts(data);
-    };
-    fetchData();
-  }, [input]);
+  const { loading, error, data } = useQuery(GET_PRODUCTS, {
+    variables: { input },
+  });
+
+  if (loading) return <p>Loading...</p>;
+  if (error) return <p>Error: {error.message}</p>;
 
   return (
     <>
       <main className="main-content">
         <h2 className="main-page-title">Annonces récentes</h2>
         <section className="recent-products">
-          {products.map((product) => (
+          {data?.getProducts.map((product: Product) => (
             <AdCard
               key={product.id}
               picture={product.picture}

@@ -24,7 +24,7 @@ productsRouter.get("/", async (req, res) => {
 
 productsRouter.get("/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const product = await Product.findOne({
       relations: {
         category: true,
@@ -57,7 +57,7 @@ productsRouter.get("/search/:input", async (req, res) => {
 
 productsRouter.get("/tags/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const products = await Product.find({
       relations: {
         tag: true,
@@ -108,8 +108,6 @@ productsRouter.post("/", async (req, res) => {
     product.location = location;
     product.createdAt = createdAt;
 
-    console.log("le produit", product);
-
     const errors = await validate(product);
     if (errors.length > 0) {
       res.json(errors[0].constraints);
@@ -118,14 +116,13 @@ productsRouter.post("/", async (req, res) => {
       return res.status(201).send(product);
     }
   } catch (error) {
-    console.log("l'erreur", error);
     return res.status(500).send(error);
   }
 });
 
 productsRouter.delete("/:id", async (req, res) => {
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     await Product.delete({ id });
     res.status(204).send("OK");
   } catch (error) {
@@ -159,7 +156,7 @@ productsRouter.put("/:id", async (req, res) => {
     tagsId,
   } = req.body;
   try {
-    const id = parseInt(req.params.id);
+    const id = req.params.id;
     const product = await Product.findOne({
       relations: {
         category: true,
