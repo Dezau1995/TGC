@@ -1,37 +1,33 @@
 import { FormEvent, useEffect, useState } from "react";
-import { Category } from "../types/Category";
 import Select from "react-select";
-import { Tag, TagsOptions } from "../types/Tag";
-import { useMutation, useQuery } from "@apollo/client";
-import { CREATE_PRODUCT } from "../mutation/ProductMutation";
-import { GET_CATEGORY } from "../query/CategoryQuery";
-import { GET_TAGS } from "../query/TagQuery";
+import { TagsOptions } from "../types/Tag";
 import { useNavigate } from "react-router-dom";
+import {
+  useCreate_ProductMutation,
+  useGet_TagsQuery,
+  useGetCategoriesQuery,
+} from "../graphql/hooks";
 
 function ProductForm() {
-  const [categories, setCategories] = useState<Category[]>([]);
+
   const [options, setOptions] = useState<TagsOptions[]>([]);
   const [selectedTags, setSelectedTags] = useState<TagsOptions[]>([]);
   const navigate = useNavigate();
 
-  const { data: dataCategories } = useQuery(GET_CATEGORY);
-  const { data: dataTags } = useQuery(GET_TAGS);
+  const { data: dataCategories } = useGetCategoriesQuery();
+  const { data: dataTags } = useGet_TagsQuery();
 
-  const [createProduct, { loading, error }] = useMutation(CREATE_PRODUCT);
+  const [createProduct, { loading, error }] = useCreate_ProductMutation();
 
   useEffect(() => {
-    if (dataCategories && dataCategories.getCategories) {
-      setCategories(dataCategories.getCategories);
-    }
-
     if (dataTags && dataTags.getTags) {
-      const tagsOptions: TagsOptions[] = dataTags.getTags.map((tag: Tag) => ({
+      const tagsOptions = dataTags.getTags.map((tag) => ({
         value: tag.id,
         label: tag.name,
       }));
       setOptions(tagsOptions);
     }
-  }, [dataCategories, dataTags]);
+  }, [dataTags]);
 
   const handleSumbit = async (e: FormEvent) => {
     e.preventDefault();
@@ -92,9 +88,9 @@ function ProductForm() {
         <input type="text" name="location" />
       </label>
       <select name="category">
-        {categories.map((category: Category) => (
-          <option key={category.id} value={category.id}>
-            {category.name}
+        {dataCategories?.getCategories?.map((category) => (
+          <option key={category?.id} value={category?.id}>
+            {category?.name}
           </option>
         ))}
       </select>

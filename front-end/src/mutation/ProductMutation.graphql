@@ -1,0 +1,43 @@
+mutation UPDATE_DETAILS_PRODUCT(
+  $data: UpdateProductInput!
+  $productId: String!
+) {
+  updateDetailsProduct(data: $data, productId: $productId) {
+    id
+    title
+    description
+    owner
+    price
+    picture
+    location
+    category {
+      id
+      name
+    }
+    tag {
+      id
+      name
+    }
+  }
+}
+
+mutation CREATE_PRODUCT($data: ProductInput!) {
+  createProduct(data: $data) {
+    title
+    description
+    owner
+    price
+    picture
+    location
+    category {
+      id
+    }
+    tag {
+      id
+    }
+  }
+}
+
+mutation DELETE_PRODUCT($productId: String!) {
+  deleteProduct(productId: $productId)
+}

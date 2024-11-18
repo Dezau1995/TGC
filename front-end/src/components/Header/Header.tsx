@@ -1,9 +1,7 @@
 import { SetStateAction, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Category } from "../../types/Category";
 import "./header.css";
-import { useQuery } from "@apollo/client";
-import { GET_CATEGORY } from "../../query/CategoryQuery";
+import { useGetCategoriesQuery } from "../../graphql/hooks";
 
 type Props = {
   setInput: (input: string) => void;
@@ -13,9 +11,9 @@ function Header({ setInput }: Props) {
   const [searchInput, setSearchInput] = useState<string>("");
   const navigate = useNavigate();
 
-  const { loading, error, data } = useQuery(GET_CATEGORY);
+  const { loading, error, data } = useGetCategoriesQuery();
 
-  const handleClickCategories = (categoryId: number) => {
+  const handleClickCategories = (categoryId: string) => {
     navigate(`/categories/${categoryId}`);
   };
 
@@ -75,7 +73,7 @@ function Header({ setInput }: Props) {
         </section>
         <nav className="categories-navigation">
           <ul className="category-navigation-link">
-            {data.getCategories.map((category: Category) => (
+            {data?.getCategories.map((category) => (
               <li
                 key={category.id}
                 onClick={() => handleClickCategories(category.id)}

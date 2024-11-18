@@ -36,13 +36,16 @@
   font-size: x-small;
 }
 
-/* .product-details-image {
+.product-card-image {
   width: 100%;
-} */
+  object-fit: scale-down;
+
+}
 
 @media screen and (min-width: 720px) {
   .product-card-image {
     height: 350px;
+    object-fit: scale-down;
   }
 
   .product-card-text {

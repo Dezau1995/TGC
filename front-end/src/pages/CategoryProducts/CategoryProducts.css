@@ -1,0 +1,20 @@
+.main-content-category {
+    display: flex;
+    flex-direction: column;
+    text-align: center;
+}
+
+.title-category {
+  font-weight: 600;
+  font-size: xx-large;
+  font-family: var(--font-family);
+}
+
+.display-category-products {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  width: 100vw;
+  margin: 1rem;
+  gap: 1rem;
+}

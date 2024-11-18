@@ -1,0 +1,39 @@
+.display-details-page {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  h1 {
+    font-weight: 600;
+    font-family: var(--font-family);
+    margin: 1rem 0;
+  }
+  p {
+    font-family: var(--font-family);
+    margin: 0.25rem 0;
+  }
+}
+
+.display-edit-form {
+    display: flex;
+    flex-direction: column;
+}
+
+.btn-edit {
+  background-color: #ffa41b;
+  font-family: var(--font-family);
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  padding: 0.25rem 0.5rem;
+  /* box-shadow: 0 0 10px 2px orange; */
+}
+
+.btn-delete-product {
+  background-color: #ffa41b;
+  font-family: var(--font-family);
+  font-weight: 600;
+  border: none;
+  border-radius: 5px;
+  padding: 0.25rem 0.5rem;
+}

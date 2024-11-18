@@ -1,19 +1,21 @@
 import { FormEvent, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Tag, TagsOptions } from "../types/Tag";
+import { TagsOptions } from "../../types/Tag";
 import Select from "react-select";
-import { useMutation, useQuery } from "@apollo/client";
-import { GET_PRODUCT_BY_ID } from "../query/ProductQuery";
-import { GET_TAGS } from "../query/TagQuery";
+import "./ProductDetails.css";
 import {
-  UPDATE_DETAILS_PRODUCT,
-  DELETE_PRODUCT,
-} from "../mutation/ProductMutation";
+  useDelete_ProductMutation,
+  useGet_Product_By_IdQuery,
+  useGet_TagsQuery,
+  useGetCategoriesQuery,
+  useUpdate_Details_ProductMutation,
+} from "../../graphql/hooks";
 
 function ProductDetail() {
   const { productId } = useParams();
   const [edit, setEdit] = useState<boolean>(false);
   const [btnValue, setBtnValue] = useState<string>("Éditer");
+  // const [categories, setCategories] = useState<Category[]>([]);
   const [selectedTags, setSelectedTags] = useState<TagsOptions[]>([]);
   const [options, setOptions] = useState<TagsOptions[]>([]);
   const navigate = useNavigate();
@@ -22,26 +24,28 @@ function ProductDetail() {
     loading: loadingProductId,
     error: errorProductId,
     data: dataProductId,
-  } = useQuery(GET_PRODUCT_BY_ID, {
-    variables: { productId },
+  } = useGet_Product_By_IdQuery({
+    variables: { productId: productId as string },
   });
+
+  const { data: dataCategories } = useGetCategoriesQuery();
 
   const {
     loading: loadingTags,
     error: errorTags,
     data: dataTags,
-  } = useQuery(GET_TAGS);
+  } = useGet_TagsQuery();
 
   const [
     updateDetailsProduct,
     { loading: loadingPatchProduct, error: errorPatchProduct },
-  ] = useMutation(UPDATE_DETAILS_PRODUCT);
+  ] = useUpdate_Details_ProductMutation();
 
-  const [deleteProduct] = useMutation(DELETE_PRODUCT);
+  const [deleteProduct] = useDelete_ProductMutation();
 
   useEffect(() => {
     if (dataTags && dataTags.getTags) {
-      const tagsOptions: TagsOptions[] = dataTags.getTags.map((tag: Tag) => ({
+      const tagsOptions: TagsOptions[] = dataTags?.getTags.map((tag) => ({
         value: tag.id,
         label: tag.name,
       }));
@@ -58,7 +62,7 @@ function ProductDetail() {
     try {
       await updateDetailsProduct({
         variables: {
-          productId,
+          productId: productId as string,
           data: formJson,
         },
       });
@@ -78,7 +82,7 @@ function ProductDetail() {
     try {
       await deleteProduct({
         variables: {
-          productId,
+          productId: productId as string,
         },
       });
       navigate("/");
@@ -93,67 +97,95 @@ function ProductDetail() {
     return <p>Error ... </p>;
 
   return (
-    <section>
+    <section className="display-details-page">
       <p>Product #{productId}</p>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={handleSubmit} className="display-edit-form">
         {!edit ? (
-          <img src={dataProductId.getProductById.picture} alt="picture" />
+          <img src={dataProductId?.getProductById.picture} alt="picture" />
         ) : (
-          <input type="text" name="picture" />
+          <label>
+            Image :
+            <input
+              type="text"
+              defaultValue={dataProductId?.getProductById.picture}
+              name="picture"
+            />
+          </label>
         )}
         {!edit ? (
-          <h1>{dataProductId.getProductById.title}</h1>
+          <h1>{dataProductId?.getProductById.title}</h1>
         ) : (
           <label>
             Titre :
             <input
               type="text"
-              defaultValue={dataProductId.getProductById.title}
+              defaultValue={dataProductId?.getProductById.title}
               name="title"
             />
           </label>
         )}
         {!edit ? (
-          <p>{dataProductId.getProductById.description}</p>
+          <p>{dataProductId?.getProductById.description}</p>
         ) : (
           <label>
             Description :
             <input
               type="text"
-              defaultValue={dataProductId.getProductById.description}
+              defaultValue={dataProductId?.getProductById.description}
               name="description"
             />
           </label>
         )}
         {!edit ? (
-          <p>{dataProductId.getProductById.owner}</p>
+          <p>{dataProductId?.getProductById.owner}</p>
         ) : (
           <label>
             Propriétaire :
             <input
               type="text"
-              defaultValue={dataProductId.getProductById.owner}
+              defaultValue={dataProductId?.getProductById.owner}
               name="owner"
             />
           </label>
         )}
         {!edit ? (
-          <p>{dataProductId.getProductById.price}</p>
+          <p>{dataProductId?.getProductById.price}</p>
         ) : (
           <label>
             Prix :
             <input
               type="text"
-              defaultValue={dataProductId.getProductById.price}
+              defaultValue={dataProductId?.getProductById.price}
               name="price"
             />
           </label>
         )}
-        <p>{dataProductId.getProductById.createdAt}</p>
+        <p>{dataProductId?.getProductById.createdAt}</p>
+        {!edit ? (
+          dataProductId?.getProductById?.category ? (
+            <p>{dataProductId?.getProductById.category.name}</p>
+          ) : (
+            <p>Pas de catégorie</p>
+          )
+        ) : (
+          <label>
+            <select
+              name="categoryId"
+              defaultValue={dataProductId?.getProductById.category?.id}
+            >
+              <option value="Choose a category">Choisir une catégorie</option>
+              {dataCategories?.getCategories?.map((category) => (
+                <option key={category?.id} value={category?.id}>
+                  {category?.name}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           {!edit ? (
             <section>
-              {dataProductId.getProductById.tag.map((option: Tag) => (
+              {dataProductId?.getProductById.tag.map((option) => (
                 <p className="tags" key={option.id}>
                   {option.name}
                 </p>
@@ -174,11 +206,13 @@ function ProductDetail() {
         {edit && <button type="submit">{btnValue}</button>}
       </form>
       {!edit && (
-        <button type="button" onClick={handleBtnValue}>
+        <button type="button" onClick={handleBtnValue} className="btn-edit">
           {btnValue}
         </button>
       )}
-      <button onClick={handleDelete}>Supprimer le produit</button>
+      <button onClick={handleDelete} className="btn-delete-product">
+        Supprimer le produit
+      </button>
     </section>
   );
 }
