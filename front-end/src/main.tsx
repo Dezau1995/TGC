@@ -5,7 +5,7 @@ import router from "./Router";
 import { ApolloClient, InMemoryCache, ApolloProvider } from "@apollo/client";
 
 const client = new ApolloClient({
-  uri: "http://localhost:3000/",
+  uri: `http://localhost:${import.meta.env.VITE_GATEWAY_PORT}/api`,
   cache: new InMemoryCache(),
 });
 

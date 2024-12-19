@@ -182,6 +182,12 @@ export class ProductResolver {
     const tags = JSON.parse(data.tagsId as string);
     const tagsId = await Tags.findBy({ id: In(tags) });
 
+    let category = null;
+    if (data.categoryId) {
+      category = await Category.findOneBy({ id: data.categoryId });
+      if (!category) throw new Error("Category not found");
+    }
+
     const product = await Product.findOneOrFail({
       where: { id },
       relations: ["category", "tag"],
@@ -191,6 +197,9 @@ export class ProductResolver {
     }
     Object.assign(product, data);
 
+    if (category) {
+      product.category = category;
+    }
     product.tag = tagsId;
 
     await product.save();
