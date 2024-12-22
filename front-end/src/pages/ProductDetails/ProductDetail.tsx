@@ -149,7 +149,7 @@ function ProductDetail() {
           </label>
         )}
         {!edit ? (
-          <p>{dataProductId?.getProductById.price}</p>
+          <p>{dataProductId?.getProductById.price} €</p>
         ) : (
           <label>
             Prix :
